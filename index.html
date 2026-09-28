@@ -141,8 +141,9 @@
   .view{ display:block; scroll-margin-top:92px; padding-top:var(--sp-7); }
   #view-home{
     padding-top:var(--sp-2);
-    min-height:calc(100svh - 96px);
-    display:flex; flex-direction:column; justify-content:center;
+    min-height:clamp(520px, 100svh - 96px, 880px);
+    display:grid;
+    align-content:center;
   }
   #view-calc{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); }
   #view-dash{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); padding-bottom:var(--sp-7); }
