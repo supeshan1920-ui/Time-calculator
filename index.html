@@ -354,7 +354,6 @@
         <div class="stat-hero">
           <div class="k">Feierabend</div>
           <div class="v" id="endWithSaldo">—</div>
-          <div class="hint" id="endBankedNote" style="display:none; margin-top:6px;"></div>
         </div>
         <div class="stat-hero"><div class="k">Ohne Saldo</div><div class="v" id="endNoSaldo">—</div></div>
       </div>
@@ -765,20 +764,12 @@
     const soll = homeSoll();
 
     const blockEndMin = timeToMin(state.settings.blockEnd);
-    const feierabendNeutral = timeToMin(start) + soll + pause;
-    let feierabendSaldo = feierabendNeutral - carry;
-    let bankedExtra = 0;
-    if (feierabendSaldo < blockEndMin){
-      // Blockzeiten win: you stay until the block ends no matter how much
-      // saldo you've banked — the minutes you'd otherwise have saved go
-      // straight into the balance instead of letting you leave early.
-      bankedExtra = blockEndMin - feierabendSaldo;
-      feierabendSaldo = blockEndMin;
-    }
+    // Blockzeiten win: you're present until the block ends no matter what
+    // the raw math says, so neither reading is ever allowed to fall before it.
+    const feierabendNeutral = Math.max(timeToMin(start) + soll + pause, blockEndMin);
+    const feierabendSaldo = Math.max(feierabendNeutral - carry, blockEndMin);
     $('endWithSaldo').textContent = minToTime(feierabendSaldo);
     $('endNoSaldo').textContent = minToTime(feierabendNeutral);
-    $('endBankedNote').style.display = bankedExtra > 0 ? 'block' : 'none';
-    if (bankedExtra > 0) $('endBankedNote').textContent = '+' + bankedExtra + ' Min gehen in den Saldo (Blockzeiten bis ' + state.settings.blockEnd + ')';
 
     const leave = $('leave').value;
     if (leave){
