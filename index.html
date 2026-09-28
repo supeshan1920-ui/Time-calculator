@@ -764,10 +764,13 @@
     const soll = homeSoll();
 
     const blockEndMin = timeToMin(state.settings.blockEnd);
-    // Blockzeiten win: you're present until the block ends no matter what
-    // the raw math says, so neither reading is ever allowed to fall before it.
-    const feierabendNeutral = Math.max(timeToMin(start) + soll + pause, blockEndMin);
-    const feierabendSaldo = Math.max(feierabendNeutral - carry, blockEndMin);
+    // Blockzeiten win: you're present until the block ends no matter what the
+    // raw math says. Apply carry to the RAW (unfloored) time first, then floor
+    // the result once — flooring the neutral time before subtracting carry
+    // would floor twice and overstate how late you need to stay.
+    const feierabendRaw = timeToMin(start) + soll + pause;
+    const feierabendNeutral = Math.max(feierabendRaw, blockEndMin);
+    const feierabendSaldo = Math.max(feierabendRaw - carry, blockEndMin);
     $('endWithSaldo').textContent = minToTime(feierabendSaldo);
     $('endNoSaldo').textContent = minToTime(feierabendNeutral);
 
