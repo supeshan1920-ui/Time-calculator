@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Feierabend</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23ff8a3d'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens : light (default) ---------- */
+  :root{
+    color-scheme: light;
+    --bg:#f3f4f6; --backdrop:#eceef1;
+    --surface:#ffffff; --surface-2:#e9eaee; --surface-3:#dfe1e6;
+    --line:#d8dae0; --line-soft:#e6e7ec;
+    --ink:#1a1b1f; --muted:#6b6e78; --faint:#9799a3;
+    --accent:#d9631a; --school:#3457d5;
+    --good:#1f8a5f; --warn:#a8790a; --critical:#c9432f;
+    --shadow: 0 1px 2px rgba(20,20,24,.04), 0 8px 24px -12px rgba(20,20,24,.12);
+
+    --font-display:'Fraunces', ui-serif, Georgia, serif;
+    --font-body:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
+
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px; --sp-8:64px;
+    --fs-xs:11px; --fs-sm:12.5px; --fs-base:14.5px; --fs-md:17px; --fs-lg:22px; --fs-xl:34px; --fs-2xl:48px; --fs-3xl:60px;
+    --r-sm:8px; --r-md:12px; --r-lg:20px; --r-pill:999px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#15161a; --backdrop:#0f1013;
+      --surface:#1b1d22; --surface-2:#22252b; --surface-3:#2a2d34;
+      --line:#2d3038; --line-soft:#25272e;
+      --ink:#f0efec; --muted:#9a9da6; --faint:#686b74;
+      --accent:#ff8a3d; --school:#6c8cff;
+      --good:#4fd393; --warn:#f2c94c; --critical:#ff6b6b;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#15161a; --backdrop:#0f1013;
+    --surface:#1b1d22; --surface-2:#22252b; --surface-3:#2a2d34;
+    --line:#2d3038; --line-soft:#25272e;
+    --ink:#f0efec; --muted:#9a9da6; --faint:#686b74;
+    --accent:#ff8a3d; --school:#6c8cff;
+    --good:#4fd393; --warn:#f2c94c; --critical:#ff6b6b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.55);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body); font-size:var(--fs-base); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh; position:relative; overflow-x:hidden;
+  }
+  img{ max-width:100%; }
+  h1,h2,h3{ font-family:var(--font-display); text-wrap:balance; margin:0; }
+  button,input,select{ font-family:inherit; color:inherit; }
+  a{ color:var(--accent); }
+  .tab-num, .clock, .stat-v, time, .mono{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+  /* ---------- wallpaper backdrop ---------- */
+  #wallpaper{
+    position:fixed; inset:0; z-index:-1; background:var(--backdrop);
+    background-size:cover; background-position:center;
+    transition:background .3s ease;
+  }
+  #wallpaper::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--bg) 55%, transparent) 0%, var(--bg) 78%);
+  }
+  [data-wallpaper="ember"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 60%), var(--backdrop); }
+  [data-wallpaper="midnight"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, var(--school) 40%, transparent), transparent 60%), var(--backdrop); }
+  [data-wallpaper="moss"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, #2f9e6e 40%, transparent), transparent 60%), var(--backdrop); }
+  [data-wallpaper="plain"] #wallpaper{ background:var(--backdrop); }
+  [data-wallpaper="custom"] #wallpaper{ background-image:var(--wallpaper-img); }
+
+  /* ---------- shell / nav ---------- */
+  .shell{ max-width:900px; margin:0 auto; padding:0 var(--sp-5) var(--sp-8); }
+  nav.topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4);
+    padding:var(--sp-5) 0 var(--sp-4); position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, var(--bg) 72%, transparent);
+  }
+  .wordmark{ display:flex; align-items:baseline; gap:var(--sp-2); }
+  .wordmark .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); display:inline-block; margin-right:2px; }
+  .wordmark span{ font-family:var(--font-display); font-size:19px; font-weight:600; letter-spacing:.2px; }
+  .tabs{ display:flex; gap:var(--sp-1); background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); padding:4px; box-shadow:var(--shadow); }
+  .tabs button{
+    border:none; background:transparent; color:var(--muted); font-size:var(--fs-sm); font-weight:600;
+    letter-spacing:.3px; padding:8px 16px; border-radius:var(--r-pill); cursor:pointer; transition:.15s;
+  }
+  .tabs button:hover{ color:var(--ink); }
+  .tabs button.active{ background:var(--accent); color:#1c1006; }
+  :root[data-theme="light"] .tabs button.active, :root:not([data-theme="dark"]) .tabs button.active{ color:#fff; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tabs button.active{ color:#1c1006; } }
+  :root[data-theme="dark"] .tabs button.active{ color:#1c1006; }
+  .icon-btn{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--surface);
+    color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+    box-shadow:var(--shadow); transition:.15s;
+  }
+  .icon-btn:hover{ color:var(--ink); border-color:var(--faint); }
+  .icon-btn svg{ width:18px; height:18px; }
+  button:focus-visible, .icon-btn:focus-visible, .tabs button:focus-visible, input:focus-visible, a:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+  .view{ display:block; scroll-margin-top:92px; padding-top:var(--sp-7); }
+  #view-home{ padding-top:var(--sp-2); }
+  #view-calc{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); }
+  #view-dash{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); padding-bottom:var(--sp-7); }
+  .narrow{ max-width:520px; margin:0 auto; }
+  .section-head{ margin-bottom:var(--sp-5); }
+  .section-head h2{ font-size:var(--fs-xl); font-weight:600; margin-top:var(--sp-1); }
+
+  /* ---------- cards ---------- */
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow); }
+  .card + .card{ margin-top:var(--sp-4); }
+  .eyebrow{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:var(--sp-2); }
+  .hint{ font-size:var(--fs-xs); color:var(--faint); line-height:1.5; margin-top:var(--sp-2); }
+
+  /* ---------- HOME ---------- */
+  .hero{ padding:var(--sp-7) 0 var(--sp-6); display:grid; grid-template-columns:1.3fr 1fr; gap:var(--sp-6); align-items:end; }
+  .greeting{ font-family:var(--font-display); font-weight:600; font-size:var(--fs-3xl); line-height:1.02; letter-spacing:-.5px; }
+  .greeting .name{ color:var(--accent); font-style:italic; }
+  .date-line{ margin-top:var(--sp-3); font-size:var(--fs-md); color:var(--muted); }
+  .clock{ margin-top:var(--sp-2); font-size:52px; font-weight:600; letter-spacing:-1px; }
+  .clock .sec{ font-size:26px; color:var(--faint); }
+  .remain-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow); text-align:left; }
+  .remain-card .k{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .remain-card .v{ font-size:44px; font-weight:600; margin-top:var(--sp-2); color:var(--accent); }
+  .remain-card .v.done{ color:var(--good); }
+  .remain-card .sub{ font-size:var(--fs-sm); color:var(--muted); margin-top:var(--sp-2); }
+  .chip{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs); font-weight:600; letter-spacing:.4px; padding:5px 11px; border-radius:var(--r-pill); }
+  .chip.school{ background:color-mix(in srgb, var(--school) 16%, var(--surface)); color:var(--school); }
+  .chip.work{ background:color-mix(in srgb, var(--accent) 16%, var(--surface)); color:var(--accent); }
+  .home-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-4); margin-top:var(--sp-2); }
+  .mini-tile{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--sp-4); }
+  .mini-tile .k{ font-size:var(--fs-xs); letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .mini-tile .v{ font-size:var(--fs-lg); font-weight:600; margin-top:6px; }
+  @media (max-width:720px){
+    .hero{ grid-template-columns:1fr; }
+    .home-grid{ grid-template-columns:1fr 1fr; }
+    .clock{ font-size:40px; }
+    .greeting{ font-size:38px; }
+  }
+  @media (max-width:520px){
+    :root{ --sp-5:16px; }
+    .wordmark span{ display:none; }
+    .tabs button{ padding:7px 11px; font-size:11.5px; }
+    .greeting{ font-size:32px; }
+    .clock{ font-size:32px; }
+    .home-grid{ grid-template-columns:1fr; }
+    .hero-stats, .grid2{ grid-template-columns:1fr; }
+    .stat-hero .v{ font-size:30px; }
+  }
+
+  /* ---------- RECHNER ---------- */
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:var(--sp-2) 0; flex-wrap:wrap; }
+  .row label{ font-size:var(--fs-base); }
+  .row .sub-label{ display:block; font-size:var(--fs-xs); color:var(--faint); margin-top:2px; }
+  input[type="time"], input[type="number"], input[type="text"], input[type="url"]{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--ink);
+    font-family:var(--font-mono); font-size:var(--fs-base); padding:9px 12px; border-radius:var(--r-sm);
+    width:120px; text-align:center;
+  }
+  input[type="color"]{ width:40px; height:34px; padding:2px; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); cursor:pointer; }
+  .divider{ height:1px; background:var(--line-soft); margin:var(--sp-3) 0; }
+  .hero-stats{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); }
+  .stat-hero{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5) var(--sp-4); text-align:center; }
+  .stat-hero .k{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .stat-hero .v{ font-size:38px; font-weight:600; margin-top:var(--sp-2); }
+  .plus{ color:var(--good); } .minus{ color:var(--critical); }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); }
+  .mini{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--sp-4); text-align:center; }
+  .mini .k{ font-size:var(--fs-xs); letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .mini .v{ font-size:var(--fs-lg); font-weight:600; margin-top:6px; }
+  .btn{
+    font-family:inherit; background:var(--surface-2); border:1px solid var(--line); color:var(--ink);
+    padding:10px 16px; border-radius:var(--r-pill); font-size:var(--fs-sm); font-weight:600; cursor:pointer; transition:.15s;
+  }
+  .btn:hover{ border-color:var(--faint); }
+  .btn.accent{ background:var(--accent); border-color:var(--accent); color:#1c1006; }
+  .btn.accent:hover{ filter:brightness(1.06); }
+  .btn.ghost{ background:transparent; }
+  .btn-row{ display:flex; gap:var(--sp-2); margin-top:var(--sp-4); }
+  .school-banner{
+    display:flex; align-items:center; gap:var(--sp-3); background:color-mix(in srgb, var(--school) 12%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--school) 30%, var(--line)); border-radius:var(--r-lg); padding:var(--sp-5);
+  }
+  .school-banner svg{ width:26px; height:26px; color:var(--school); flex-shrink:0; }
+  .school-banner h3{ font-size:var(--fs-md); font-weight:600; }
+  .school-banner p{ font-size:var(--fs-sm); color:var(--muted); margin-top:2px; }
+
+  /* ---------- DASHBOARD ---------- */
+  .dash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); }
+  .dash-grid .card{ margin-top:0; }
+  .full{ grid-column:1 / -1; }
+  .stat-row{ display:flex; align-items:baseline; justify-content:space-between; }
+  .stat-row .v{ font-size:var(--fs-xl); font-weight:600; }
+  .stat-row .avg-label{ font-size:var(--fs-xs); color:var(--faint); }
+  .chart-wrap{ margin-top:var(--sp-3); }
+  svg.chart{ width:100%; height:auto; overflow:visible; }
+  .chart text{ font-family:var(--font-mono); font-size:9px; fill:var(--muted); }
+  .chart .grid-line{ stroke:var(--line-soft); stroke-width:1; }
+  .chart .avg-line{ stroke:var(--faint); stroke-width:1; stroke-dasharray:3 3; }
+  .chart .series{ fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .chart .area{ fill:url(#areaGrad); opacity:.5; }
+  .chart .dot{ fill:var(--accent); }
+  .chart .dot.end{ fill:var(--accent); stroke:var(--surface); stroke-width:2; }
+  .sample-note{ display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--faint); margin-top:var(--sp-2); }
+  .sample-note .sw{ width:7px; height:7px; border-radius:50%; background:var(--faint); }
+
+  .progress-track{ height:14px; border-radius:var(--r-pill); background:var(--surface-3); overflow:hidden; margin-top:var(--sp-4); }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:var(--r-pill); transition:width .4s ease; }
+  .progress-fill.done{ background:var(--good); }
+  .progress-legend{ display:flex; justify-content:space-between; margin-top:var(--sp-2); font-size:var(--fs-xs); color:var(--muted); }
+
+  .todo-list{ list-style:none; margin:var(--sp-3) 0 0; padding:0; display:flex; flex-direction:column; gap:var(--sp-2); }
+  .todo-item{ display:flex; align-items:center; gap:var(--sp-3); background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md); padding:10px 12px; }
+  .todo-item input[type="checkbox"]{ width:17px; height:17px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+  .todo-item span{ flex:1; font-size:var(--fs-base); }
+  .todo-item.done span{ text-decoration:line-through; color:var(--faint); }
+  .todo-item button{ background:none; border:none; color:var(--faint); cursor:pointer; font-size:15px; padding:2px 4px; }
+  .todo-item button:hover{ color:var(--critical); }
+  .todo-add{ display:flex; gap:var(--sp-2); margin-top:var(--sp-3); }
+  .todo-add input{ flex:1; width:auto; text-align:left; font-family:var(--font-body); }
+  .todo-empty{ font-size:var(--fs-sm); color:var(--faint); padding:var(--sp-3) 0; }
+  .notion-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    background:var(--surface-2); border:1px dashed var(--line); border-radius:var(--r-md); padding:12px;
+    font-size:var(--fs-sm); font-weight:600; color:var(--muted); cursor:pointer; text-decoration:none; margin-top:var(--sp-4);
+  }
+  .notion-btn:hover{ border-color:var(--accent); color:var(--ink); }
+  @media (max-width:720px){ .dash-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- SETTINGS DRAWER ---------- */
+  .scrim{ position:fixed; inset:0; background:rgba(10,10,12,.5); opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40; }
+  .scrim.open{ opacity:1; pointer-events:auto; }
+  .drawer{
+    position:fixed; top:0; right:0; bottom:0; width:380px; max-width:92vw; background:var(--surface);
+    border-left:1px solid var(--line); z-index:41; transform:translateX(100%); transition:transform .25s ease;
+    overflow-y:auto; padding:var(--sp-5); box-shadow:-12px 0 32px rgba(0,0,0,.18);
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-5); }
+  .drawer-head h2{ font-size:var(--fs-md); font-weight:600; }
+  .field-block{ margin-bottom:var(--sp-5); }
+  .field-block .eyebrow{ margin-bottom:var(--sp-3); }
+  .swatches{ display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; }
+  .swatch{ width:30px; height:30px; border-radius:50%; border:2px solid transparent; cursor:pointer; padding:0; }
+  .swatch.sel{ border-color:var(--ink); }
+  .wallpapers{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-2); }
+  .wp-opt{ aspect-ratio:1; border-radius:var(--r-sm); border:2px solid var(--line); cursor:pointer; position:relative; overflow:hidden; }
+  .wp-opt.sel{ border-color:var(--accent); }
+  .wp-opt.plain{ background:var(--surface-3); }
+  .wp-opt.ember{ background:radial-gradient(circle at 70% 20%, #ff8a3d, #2a1608); }
+  .wp-opt.midnight{ background:radial-gradient(circle at 70% 20%, #6c8cff, #0b0e21); }
+  .wp-opt.moss{ background:radial-gradient(circle at 70% 20%, #2f9e6e, #06170f); }
+  .upload-row{ display:flex; align-items:center; gap:var(--sp-2); margin-top:var(--sp-3); }
+  .upload-row label.btn{ cursor:pointer; }
+  .full-input{ width:100%; text-align:left; font-family:var(--font-body); }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+<div id="wallpaper"></div>
+
+<div class="shell">
+  <nav class="topbar">
+    <div class="wordmark"><span class="dot"></span><span>Feierabend</span></div>
+    <div class="tabs" role="tablist">
+      <button data-view="home" class="active">Start</button>
+      <button data-view="calc">Rechner</button>
+      <button data-view="dash">Übersicht</button>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Einstellungen" title="Einstellungen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <!-- ============ HOME ============ -->
+  <section class="view" id="view-home">
+    <div class="narrow">
+    <div class="hero">
+      <div>
+        <h1 class="greeting"><span id="greetWord">Guten Tag</span>, <span class="name" id="greetName">Supeshan</span></h1>
+        <div class="date-line" id="dateLine">—</div>
+        <div class="clock" id="clockLine">--:--<span class="sec">:--</span></div>
+      </div>
+      <div class="remain-card">
+        <div class="k" id="remainLabel">Noch zu arbeiten</div>
+        <div class="v" id="remainValue">—</div>
+        <div class="sub" id="remainSub">—</div>
+      </div>
+    </div>
+    <div class="home-grid">
+      <div class="mini-tile"><div class="k">Start heute</div><div class="v" id="homeStart">—</div></div>
+      <div class="mini-tile"><div class="k">Feierabend</div><div class="v" id="homeEnd">—</div></div>
+      <div class="mini-tile"><div class="k">Blockzeiten</div><div class="v" id="homeBlock">—</div></div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ RECHNER ============ -->
+  <section class="view" id="view-calc">
+    <div class="narrow">
+    <div class="section-head">
+      <div class="eyebrow">02 · Rechner</div>
+      <h2>Zeitrechner</h2>
+    </div>
+    <div id="calcWorkday">
+      <div class="card">
+        <div class="eyebrow">Heute · Blockzeiten <span id="calcBlockRange"></span></div>
+        <div class="row">
+          <label>Startzeit</label>
+          <input type="time" id="start" value="08:30">
+        </div>
+        <div class="row">
+          <label>Mittagspause<span class="sub-label" id="pauseWindowLabel">11:30–13:00 · min. 30, max. 90 Min</span></label>
+          <input type="number" id="pauseMin" min="30" max="90" step="5" value="30" style="width:76px;">
+        </div>
+        <div class="divider"></div>
+        <div class="row">
+          <label>Saldo Vortag (Min)</label>
+          <input type="number" id="carry" step="1" value="0" style="width:76px;">
+        </div>
+        <div class="hint">Negativer Saldo = Minus eintragen (z. B. −11). Positiv = Plus.</div>
+      </div>
+
+      <div class="hero-stats" style="margin-top:var(--sp-4);">
+        <div class="stat-hero"><div class="k">Feierabend</div><div class="v" id="endWithSaldo">—</div></div>
+        <div class="stat-hero"><div class="k">Ohne Saldo</div><div class="v" id="endNoSaldo">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Wenn ich gehe um …</div>
+        <div class="row">
+          <label>Gehzeit</label>
+          <input type="time" id="leave" value="16:30">
+        </div>
+        <div class="grid2" style="margin-top:var(--sp-3);">
+          <div class="mini"><div class="k">Heute</div><div class="v" id="deltaToday">—</div></div>
+          <div class="mini"><div class="k">Gesamt-Saldo</div><div class="v" id="deltaTotal">—</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn accent" id="logDayBtn">Zum Dashboard hinzufügen</button>
+        </div>
+        <div class="hint" id="logConfirm"></div>
+      </div>
+    </div>
+
+    <div id="calcSchool" class="school-banner" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg>
+      <div>
+        <h3>Schultag</h3>
+        <p>Heute gilt kein Arbeits-Soll — die Blockzeiten-Rechnung pausiert bis morgen.</p>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ ÜBERSICHT / DASHBOARD ============ -->
+  <section class="view" id="view-dash">
+    <div class="section-head">
+      <div class="eyebrow">03 · Übersicht</div>
+      <h2>Dashboard</h2>
+    </div>
+    <div class="dash-grid">
+      <div class="card">
+        <div class="eyebrow">Ø Startzeit</div>
+        <div class="stat-row"><span class="v" id="avgStart">—</span><span class="avg-label" id="avgStartN"></span></div>
+        <div class="chart-wrap" id="chartStart"></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Ø Feierabend</div>
+        <div class="stat-row"><span class="v" id="avgLeave">—</span><span class="avg-label" id="avgLeaveN"></span></div>
+        <div class="chart-wrap" id="chartLeave"></div>
+      </div>
+
+      <div class="card full">
+        <div class="eyebrow">Heute gearbeitet</div>
+        <div class="stat-row"><span class="v" id="progressLabel">—</span><span class="avg-label" id="progressPct"></span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+        <div class="progress-legend"><span id="progressWorked">0 h gearbeitet</span><span id="avgWorkedChip"></span><span id="progressLeft">Soll —</span></div>
+        <div class="sample-note" id="sampleNote" style="display:none;"><span class="sw"></span>Beispieldaten aus deinen letzten Einträgen — trage einen Tag im Rechner ein, um echte Muster zu sehen.</div>
+      </div>
+
+      <div class="card full">
+        <div class="eyebrow">To-do</div>
+        <ul class="todo-list" id="todoList"></ul>
+        <div class="todo-add">
+          <input type="text" id="todoInput" class="full-input" placeholder="Aufgabe hinzufügen …">
+          <button class="btn accent" id="todoAddBtn">+</button>
+        </div>
+        <a class="notion-btn" id="notionBtn" href="#" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          <span id="notionBtnLabel">Notion-Liste verknüpfen</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ SETTINGS DRAWER ============ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Einstellungen">
+  <div class="drawer-head">
+    <h2>Einstellungen</h2>
+    <button class="icon-btn" id="drawerClose" aria-label="Schliessen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="field-block" id="acctBlock">
+    <div class="eyebrow">Konto · Geräte-Sync</div>
+    <div id="acctSignedOut">
+      <input type="text" id="acctEmail" class="full-input" placeholder="E-Mail" autocomplete="username" style="margin-bottom:8px;">
+      <input type="password" id="acctPassword" class="full-input" placeholder="Passwort" autocomplete="current-password">
+      <div class="btn-row">
+        <button class="btn accent" id="acctSignIn">Anmelden</button>
+        <button class="btn ghost" id="acctSignUp">Registrieren</button>
+      </div>
+      <div class="hint" id="acctMsg"></div>
+    </div>
+    <div id="acctSignedIn" class="hidden">
+      <div class="hint" style="margin-top:0;">Angemeldet als <strong id="acctEmailLabel"></strong></div>
+      <button class="btn ghost" id="acctSignOut" style="width:100%; margin-top:8px;">Abmelden</button>
+    </div>
+    <div class="hint" id="acctNotConfigured" style="display:none;">Cloud-Sync ist noch nicht eingerichtet.</div>
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">Name</div>
+    <input type="text" id="setName" class="full-input" value="Supeshan">
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">Blockzeiten</div>
+    <div class="row"><label>Start</label><input type="time" id="setBlockStart" value="08:30"></div>
+    <div class="row"><label>Ende</label><input type="time" id="setBlockEnd" value="16:30"></div>
+    <div class="hint">Bestimmt Soll-Arbeitszeit, Feierabend-Berechnung auf der Start- und Rechner-Seite.</div>
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">To-do-Liste</div>
+    <input type="url" id="setNotion" class="full-input" placeholder="https://notion.so/…">
+    <div class="hint">Öffnet in einem neuen Tab über den Button im Dashboard.</div>
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">Akzentfarbe</div>
+    <div class="swatches" id="accentSwatches"></div>
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">Hintergrund</div>
+    <div class="wallpapers" id="wallpaperOpts">
+      <button class="wp-opt plain" data-wp="plain" aria-label="Einfach"></button>
+      <button class="wp-opt ember" data-wp="ember" aria-label="Ember"></button>
+      <button class="wp-opt midnight" data-wp="midnight" aria-label="Midnight"></button>
+      <button class="wp-opt moss" data-wp="moss" aria-label="Moos"></button>
+    </div>
+    <div class="upload-row">
+      <label class="btn" for="wpUpload">Eigenes Bild …</label>
+      <input type="file" id="wpUpload" accept="image/*" style="display:none;">
+      <button class="btn ghost" id="wpClear">Entfernen</button>
+    </div>
+    <div class="hint">Bild wird nur lokal in diesem Browser gespeichert.</div>
+  </div>
+
+  <div class="field-block">
+    <button class="btn ghost" id="resetBtn" style="width:100%; color:var(--critical); border-color:var(--critical);">Alle Daten zurücksetzen</button>
+  </div>
+</aside>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+
+  /* ---------------- cloud sync (Firebase) ---------------- */
+  // Fill these in from Firebase console → Project settings → your web app's config.
+  // Leave blank to run local-only (no cross-device sync).
+  const firebaseConfig = {
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+  };
+  const FIREBASE_ENABLED = !!firebaseConfig.apiKey;
+  let fbAuth = null, fbDb = null, unsubSnapshot = null, currentUid = null, applyingRemote = false;
+  if (FIREBASE_ENABLED){
+    const fbApp = initializeApp(firebaseConfig);
+    fbAuth = getAuth(fbApp);
+    fbDb = getFirestore(fbApp);
+  }
+
+  /* ---------------- state ---------------- */
+  const STORE = 'feierabend_v1';
+  const todayStr = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+  function seedSample(){
+    const log = {};
+    const names = [];
+    let d = new Date();
+    let count = 0, offset = 1;
+    while (count < 8){
+      const t = new Date(d); t.setDate(d.getDate() - offset); offset++;
+      const dow = t.getDay();
+      if (dow === 0 || dow === 6 || dow === 4 || dow === 5) continue;
+      const jitterS = Math.round((Math.random()*16)-8);
+      const jitterL = Math.round((Math.random()*20)-10);
+      const sStart = 510+jitterS, sLeave = 990+jitterL;
+      log[todayStr(t)] = { start: minToTime(sStart), leave: minToTime(sLeave), pauseMin: 30, worked: Math.max(0, sLeave-sStart-30), sample:true };
+      count++;
+    }
+    return log;
+  }
+
+  let state = {
+    profile: { name: 'Supeshan' },
+    settings: {
+      blockStart:'08:30', blockEnd:'16:30',
+      notionUrl:'https://app.notion.com/p/To-Dos-3bfc883f7137806e9b10f1715eced11c',
+      accent:'ember', accentCustom:'',
+      wallpaper:'ember', wallpaperCustom:''
+    },
+    today: { start:'', pauseMin:30, carry:0, leave:'16:30', date:'' },
+    log: null,
+    todos: []
+  };
+
+  function loadState(){
+    try{
+      const raw = JSON.parse(localStorage.getItem(STORE));
+      if (raw) state = Object.assign(state, raw, {
+        profile: Object.assign({}, state.profile, raw.profile),
+        settings: Object.assign({}, state.settings, raw.settings),
+        today: Object.assign({}, state.today, raw.today)
+      });
+    }catch{}
+    if (!state.log) state.log = seedSample();
+  }
+  let cloudSaveTimer = null;
+  function save(){
+    try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch{}
+    if (!FIREBASE_ENABLED || !currentUid || applyingRemote) return;
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = setTimeout(()=>{
+      setDoc(doc(fbDb,'users',currentUid), JSON.parse(JSON.stringify(state))).catch(()=>{});
+    }, 700);
+  }
+
+  /* ---------------- time helpers ---------------- */
+  function timeToMin(t){ if(!t) return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+  function minToTime(m){ m=((Math.round(m)%1440)+1440)%1440; const h=Math.floor(m/60), mm=m%60; return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+  function fmtDur(mins){
+    const sign = mins<0 ? '−' : '';
+    mins = Math.abs(Math.round(mins));
+    const h = Math.floor(mins/60), m = mins%60;
+    return sign + h + 'h ' + String(m).padStart(2,'0') + 'm';
+  }
+  const PAUSE_START = timeToMin('11:30'), PAUSE_END = timeToMin('13:00');
+
+  function isSchoolDay(date){ const dow = date.getDay(); return dow === 4 || dow === 5; } // Do / Fr
+
+  /* ---------------- accent / wallpaper ---------------- */
+  const ACCENTS = { ember:'#ff8a3d', teal:'#34c0a8', violet:'#9b7bff', rose:'#ff6b9d', sky:'#4da8ff' };
+
+  function applyAccent(){
+    const key = state.settings.accent;
+    const hex = key === 'custom' ? (state.settings.accentCustom || ACCENTS.ember) : (ACCENTS[key] || ACCENTS.ember);
+    root.style.setProperty('--accent', hex);
+  }
+  function renderAccentSwatches(){
+    const wrap = $('accentSwatches'); wrap.innerHTML = '';
+    Object.entries(ACCENTS).forEach(([key,hex])=>{
+      const b = document.createElement('button');
+      b.className = 'swatch' + (state.settings.accent===key ? ' sel':'');
+      b.style.background = hex; b.setAttribute('aria-label', key);
+      b.onclick = ()=>{ state.settings.accent = key; save(); applyAccent(); renderAccentSwatches(); };
+      wrap.appendChild(b);
+    });
+    const custom = document.createElement('input');
+    custom.type = 'color'; custom.value = state.settings.accentCustom || '#ff8a3d';
+    custom.oninput = e => { state.settings.accent='custom'; state.settings.accentCustom = e.target.value; save(); applyAccent(); renderAccentSwatches(); };
+    wrap.appendChild(custom);
+  }
+
+  function applyWallpaper(){
+    document.body.parentElement.setAttribute('data-wallpaper', state.settings.wallpaper);
+    if (state.settings.wallpaper === 'custom' && state.settings.wallpaperCustom){
+      root.style.setProperty('--wallpaper-img', 'url(' + state.settings.wallpaperCustom + ')');
+    }
+    document.querySelectorAll('.wp-opt').forEach(el=> el.classList.toggle('sel', el.dataset.wp === state.settings.wallpaper));
+  }
+
+  /* ---------------- nav ---------------- */
+  document.querySelectorAll('.tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $('view-'+btn.dataset.view).scrollIntoView({ block:'start' });
+    });
+  });
+
+  const sectionOrder = [['view-home','home'], ['view-calc','calc'], ['view-dash','dash']];
+  let spyTicking = false;
+  function updateSpy(){
+    spyTicking = false;
+    const y = window.scrollY + 140;
+    let current = sectionOrder[0][1];
+    sectionOrder.forEach(([id, key])=>{ if ($(id).offsetTop <= y) current = key; });
+    document.querySelectorAll('.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.view===current));
+  }
+  window.addEventListener('scroll', ()=>{ if (!spyTicking){ spyTicking = true; requestAnimationFrame(updateSpy); } }, { passive:true });
+  updateSpy();
+
+  $('settingsBtn').addEventListener('click', ()=>{ $('drawer').classList.add('open'); $('scrim').classList.add('open'); });
+  $('drawerClose').addEventListener('click', closeDrawer);
+  $('scrim').addEventListener('click', closeDrawer);
+  function closeDrawer(){ $('drawer').classList.remove('open'); $('scrim').classList.remove('open'); }
+
+  /* ---------------- HOME ---------------- */
+  function greetingWord(h){ return h<11 ? 'Guten Morgen' : h<17 ? 'Guten Tag' : 'Guten Abend'; }
+  function homeSoll(){
+    return timeToMin(state.settings.blockEnd) - timeToMin(state.settings.blockStart) - 30;
+  }
+  function tickHome(){
+    const now = new Date();
+    if (typeof updateProgress === 'function') updateProgress();
+    $('greetWord').textContent = greetingWord(now.getHours());
+    $('greetName').textContent = state.profile.name || 'du';
+    $('dateLine').textContent = new Intl.DateTimeFormat('de-CH', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).format(now);
+    const hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
+    $('clockLine').innerHTML = hh+':'+mm+'<span class="sec">:'+ss+'</span>';
+
+    $('homeBlock').textContent = state.settings.blockStart + '–' + state.settings.blockEnd;
+
+    if (isSchoolDay(now)){
+      $('remainLabel').textContent = 'Heute';
+      $('remainValue').textContent = 'Schultag';
+      $('remainValue').classList.remove('done');
+      $('remainSub').textContent = 'Kein Arbeits-Soll heute';
+      $('homeStart').textContent = '—';
+      $('homeEnd').textContent = '—';
+      return;
+    }
+    const start = state.today.date === todayStr(now) ? state.today.start : '';
+    const soll = homeSoll();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    $('homeStart').textContent = start || '— nicht gestartet';
+
+    if (!start){
+      $('remainLabel').textContent = 'Geplant heute';
+      $('remainValue').textContent = fmtDur(soll);
+      $('remainValue').classList.remove('done');
+      $('remainSub').textContent = 'Start noch nicht eingetragen';
+      $('homeEnd').textContent = minToTime(timeToMin(state.settings.blockStart) + soll + (state.today.pauseMin||30));
+      return;
+    }
+    const pause = state.today.pauseMin || 30;
+    const feierabend = timeToMin(start) + soll + pause;
+    $('homeEnd').textContent = minToTime(feierabend);
+    const remain = feierabend - nowMin;
+    if (remain <= 0){
+      $('remainLabel').textContent = 'Feierabend';
+      $('remainValue').textContent = 'Geschafft ✓';
+      $('remainValue').classList.add('done');
+      $('remainSub').textContent = 'seit ' + minToTime(feierabend);
+    } else {
+      $('remainLabel').textContent = 'Noch zu arbeiten';
+      $('remainValue').textContent = fmtDur(remain);
+      $('remainValue').classList.remove('done');
+      $('remainSub').textContent = 'Feierabend um ' + minToTime(feierabend);
+    }
+  }
+
+  /* ---------------- RECHNER ---------------- */
+  function recalc(){
+    const now = new Date();
+    const school = isSchoolDay(now);
+    $('calcWorkday').style.display = school ? 'none' : 'block';
+    $('calcSchool').style.display = school ? 'flex' : 'none';
+    if (school) return;
+
+    $('calcBlockRange').textContent = state.settings.blockStart + '–' + state.settings.blockEnd;
+    $('pauseWindowLabel').textContent = '11:30–13:00 · min. 30, max. 90 Min';
+
+    const start = $('start').value;
+    let pause = Math.min(90, Math.max(30, Number($('pauseMin').value) || 30));
+    $('pauseMin').value = pause;
+    const carry = Number($('carry').value) || 0;
+    const soll = homeSoll();
+
+    const feierabendNeutral = timeToMin(start) + soll + pause;
+    const feierabendSaldo = feierabendNeutral - carry;
+    $('endWithSaldo').textContent = minToTime(feierabendSaldo);
+    $('endNoSaldo').textContent = minToTime(feierabendNeutral);
+
+    const leave = $('leave').value;
+    if (leave){
+      const worked = timeToMin(leave) - timeToMin(start) - pause;
+      const deltaToday = worked - soll;
+      $('deltaToday').textContent = fmtDur(deltaToday);
+      $('deltaToday').className = 'v ' + (deltaToday>0?'plus':deltaToday<0?'minus':'');
+      const deltaTotal = deltaToday + carry;
+      $('deltaTotal').textContent = fmtDur(deltaTotal);
+      $('deltaTotal').className = 'v ' + (deltaTotal>0?'plus':deltaTotal<0?'minus':'');
+    }
+
+    state.today = { date: todayStr(now), start, pauseMin: pause, carry, leave };
+    save();
+  }
+  ['start','pauseMin','carry','leave'].forEach(id => $(id).addEventListener('input', recalc));
+
+  $('logDayBtn').addEventListener('click', ()=>{
+    const now = new Date();
+    if (isSchoolDay(now)) return;
+    const key = todayStr(now);
+    const start = $('start').value;
+    const leave = $('leave').value || minToTime(now.getHours()*60+now.getMinutes());
+    const pauseMin = Number($('pauseMin').value) || 30;
+    const worked = Math.max(0, timeToMin(leave) - timeToMin(start) - pauseMin);
+    state.log[key] = { start, leave, pauseMin, worked, sample:false };
+    save();
+    $('logConfirm').textContent = 'Zum Dashboard hinzugefügt — ' + fmtDur(worked) + ' am ' + key + '.';
+    setTimeout(()=> $('logConfirm').textContent = '', 4000);
+    renderDashboard();
+  });
+
+  /* ---------------- DASHBOARD ---------------- */
+  function workdayEntries(){
+    return Object.entries(state.log)
+      .map(([date, v]) => ({ date, ...v }))
+      .filter(e => e.start && e.leave)
+      .sort((a,b)=> a.date.localeCompare(b.date))
+      .slice(-10);
+  }
+
+  function lineChart(entries, field, colorVar){
+    const w = 300, h = 110, padL = 30, padR = 10, padT = 10, padB = 18;
+    const vals = entries.map(e => timeToMin(e[field]));
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (lo === hi) { lo -= 30; hi += 30; }
+    lo -= 10; hi += 10;
+    const x = i => padL + (i/(entries.length-1||1)) * (w-padL-padR);
+    const y = v => padT + (1 - (v-lo)/(hi-lo)) * (h-padT-padB);
+    const avg = vals.reduce((a,b)=>a+b,0) / vals.length;
+
+    const ticks = 3;
+    let gridSvg = '';
+    for (let t=0; t<=ticks; t++){
+      const val = lo + (hi-lo)*t/ticks;
+      const yy = y(val);
+      gridSvg += `<line class="grid-line" x1="${padL}" x2="${w-padR}" y1="${yy}" y2="${yy}"/>`;
+      gridSvg += `<text x="${padL-6}" y="${yy+3}" text-anchor="end">${minToTime(val)}</text>`;
+    }
+    const avgY = y(avg);
+    gridSvg += `<line class="avg-line" x1="${padL}" x2="${w-padR}" y1="${avgY}" y2="${avgY}"/>`;
+
+    const pts = vals.map((v,i)=>[x(i), y(v)]);
+    const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const area = path + ` L${pts[pts.length-1][0].toFixed(1)},${h-padB} L${pts[0][0].toFixed(1)},${h-padB} Z`;
+
+    let dots = '';
+    pts.forEach((p,i)=>{
+      const isEnd = i === pts.length-1;
+      dots += `<circle class="dot${isEnd?' end':''}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${isEnd?5:3.5}"/>`;
+      const dow = new Intl.DateTimeFormat('de-CH',{weekday:'short'}).format(new Date(entries[i].date+'T00:00'));
+      dots += `<text x="${p[0].toFixed(1)}" y="${h-4}" text-anchor="middle">${dow}</text>`;
+    });
+    const endLabel = `<text x="${pts[pts.length-1][0].toFixed(1)}" y="${pts[pts.length-1][1]-9}" text-anchor="middle" font-weight="600" fill="var(--ink)">${minToTime(vals[vals.length-1])}</text>`;
+
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}">
+      <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${colorVar}" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="${colorVar}" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${gridSvg}
+      <path class="area" d="${area}"/>
+      <path class="series" d="${path}"/>
+      ${dots}${endLabel}
+    </svg>`;
+  }
+
+  function updateProgress(){
+    const now = new Date();
+    const soll = homeSoll();
+    let workedSoFar = 0;
+    const live = !isSchoolDay(now) && state.today.date === todayStr(now) && state.today.start;
+    if (live){
+      const nowMin = now.getHours()*60+now.getMinutes();
+      workedSoFar = Math.max(0, nowMin - timeToMin(state.today.start) - (state.today.pauseMin||30));
+    }
+    const pct = soll>0 ? Math.min(100, Math.round((workedSoFar/soll)*100)) : 0;
+    $('progressFill').style.width = pct + '%';
+    $('progressFill').classList.toggle('done', pct>=100);
+    $('progressLabel').textContent = live ? (fmtDur(workedSoFar) + ' / ' + fmtDur(soll)) : ('— / ' + fmtDur(soll));
+    $('progressPct').textContent = live ? (pct + '%') : '—';
+    $('progressWorked').textContent = live ? (fmtDur(workedSoFar) + ' gearbeitet') : 'noch nicht gestartet';
+    $('progressLeft').textContent = fmtDur(Math.max(0,soll-workedSoFar)) + ' übrig';
+  }
+
+  function renderDashboard(){
+    const entries = workdayEntries();
+    const usingSample = entries.some(e=>e.sample);
+    $('sampleNote').style.display = usingSample ? 'flex' : 'none';
+
+    if (entries.length){
+      const avgStartMin = entries.reduce((a,e)=>a+timeToMin(e.start),0)/entries.length;
+      const avgLeaveMin = entries.reduce((a,e)=>a+timeToMin(e.leave),0)/entries.length;
+      const avgWorked = entries.reduce((a,e)=>a+(e.worked ?? Math.max(0,timeToMin(e.leave)-timeToMin(e.start)-e.pauseMin)),0)/entries.length;
+      $('avgStart').textContent = minToTime(avgStartMin);
+      $('avgLeave').textContent = minToTime(avgLeaveMin);
+      $('avgStartN').textContent = 'aus ' + entries.length + ' Tagen';
+      $('avgLeaveN').textContent = 'aus ' + entries.length + ' Tagen';
+      $('avgWorkedChip').textContent = 'Ø gearbeitet: ' + fmtDur(avgWorked);
+      $('chartStart').innerHTML = lineChart(entries, 'start', 'var(--accent)');
+      $('chartLeave').innerHTML = lineChart(entries, 'leave', 'var(--accent)');
+    } else {
+      $('avgStart').textContent = '—'; $('avgLeave').textContent = '—';
+      $('avgWorkedChip').textContent = '';
+      $('chartStart').innerHTML = ''; $('chartLeave').innerHTML = '';
+    }
+
+    updateProgress();
+    renderTodos();
+    const url = state.settings.notionUrl;
+    $('notionBtn').href = url || '#';
+    $('notionBtnLabel').textContent = url ? 'In Notion öffnen' : 'Notion-Link in Einstellungen hinzufügen';
+  }
+
+  function renderTodos(){
+    const list = $('todoList');
+    list.innerHTML = '';
+    if (!state.todos.length){
+      list.innerHTML = '<li class="todo-empty">Noch keine Aufgaben — leg los, oder öffne deine Notion-Liste.</li>';
+      return;
+    }
+    state.todos.forEach(t=>{
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (t.done?' done':'');
+      li.innerHTML = `<input type="checkbox" ${t.done?'checked':''}><span></span><button aria-label="Löschen">×</button>`;
+      li.querySelector('span').textContent = t.text;
+      li.querySelector('input').onchange = ()=>{ t.done = !t.done; save(); renderTodos(); };
+      li.querySelector('button').onclick = ()=>{ state.todos = state.todos.filter(x=>x.id!==t.id); save(); renderTodos(); };
+      list.appendChild(li);
+    });
+  }
+  $('todoAddBtn').addEventListener('click', addTodo);
+  $('todoInput').addEventListener('keydown', e=>{ if (e.key==='Enter') addTodo(); });
+  function addTodo(){
+    const val = $('todoInput').value.trim();
+    if (!val) return;
+    state.todos.push({ id: Date.now(), text: val, done:false });
+    $('todoInput').value = '';
+    save(); renderTodos();
+  }
+
+  /* ---------------- SETTINGS ---------------- */
+  function initSettings(){
+    $('setName').value = state.profile.name;
+    $('setBlockStart').value = state.settings.blockStart;
+    $('setBlockEnd').value = state.settings.blockEnd;
+    $('setNotion').value = state.settings.notionUrl;
+    $('notionBtn') && ($('notionBtn').href = state.settings.notionUrl || '#');
+
+    $('setName').addEventListener('input', e=>{ state.profile.name = e.target.value || 'du'; save(); tickHome(); });
+    $('setBlockStart').addEventListener('input', e=>{ state.settings.blockStart = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
+    $('setBlockEnd').addEventListener('input', e=>{ state.settings.blockEnd = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
+    $('setNotion').addEventListener('input', e=>{ state.settings.notionUrl = e.target.value; save(); renderDashboard(); });
+
+    renderAccentSwatches();
+
+    document.querySelectorAll('.wp-opt').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.settings.wallpaper = btn.dataset.wp; save(); applyWallpaper(); });
+    });
+    $('wpUpload').addEventListener('change', e=>{
+      const file = e.target.files[0]; if (!file) return;
+      if (file.size > 3*1024*1024){ alert('Bild ist zu gross (max. 3 MB).'); return; }
+      const reader = new FileReader();
+      reader.onload = ()=>{ state.settings.wallpaper='custom'; state.settings.wallpaperCustom = reader.result; save(); applyWallpaper(); };
+      reader.readAsDataURL(file);
+    });
+    $('wpClear').addEventListener('click', ()=>{ state.settings.wallpaper='ember'; state.settings.wallpaperCustom=''; save(); applyWallpaper(); });
+
+    $('resetBtn').addEventListener('click', ()=>{
+      if (!confirm('Wirklich alle Daten (Verlauf, Aufgaben, Einstellungen) zurücksetzen?')) return;
+      localStorage.removeItem(STORE);
+      location.reload();
+    });
+  }
+
+  function refreshInputsFromState(){
+    $('start').value = state.today.start || state.settings.blockStart;
+    $('pauseMin').value = state.today.pauseMin || 30;
+    $('carry').value = state.today.carry || 0;
+    $('leave').value = state.today.leave || state.settings.blockEnd;
+    $('setName').value = state.profile.name;
+    $('setBlockStart').value = state.settings.blockStart;
+    $('setBlockEnd').value = state.settings.blockEnd;
+    $('setNotion').value = state.settings.notionUrl;
+  }
+  function renderAll(){
+    refreshInputsFromState();
+    applyAccent();
+    applyWallpaper();
+    renderAccentSwatches();
+    recalc();
+    tickHome();
+    renderDashboard();
+  }
+
+  /* ---------------- account / cloud sync ---------------- */
+  function authErrorMsg(e){
+    const c = e?.code || '';
+    if (c.includes('email-already-in-use')) return 'Diese E-Mail ist bereits registriert.';
+    if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found')) return 'E-Mail oder Passwort falsch.';
+    if (c.includes('weak-password')) return 'Passwort zu schwach (mind. 6 Zeichen).';
+    if (c.includes('invalid-email')) return 'Ungültige E-Mail-Adresse.';
+    return 'Fehler: ' + (c.replace('auth/','') || 'unbekannt');
+  }
+  function setAcctUI(user){
+    if (!FIREBASE_ENABLED){
+      $('acctNotConfigured').style.display = 'block';
+      $('acctSignedOut').classList.add('hidden');
+      $('acctSignedIn').classList.add('hidden');
+      return;
+    }
+    $('acctSignedOut').classList.toggle('hidden', !!user);
+    $('acctSignedIn').classList.toggle('hidden', !user);
+    if (user) $('acctEmailLabel').textContent = user.email;
+  }
+  function initAccount(){
+    setAcctUI(null);
+    if (!FIREBASE_ENABLED) return;
+
+    onAuthStateChanged(fbAuth, async (user)=>{
+      if (unsubSnapshot){ unsubSnapshot(); unsubSnapshot = null; }
+      currentUid = user ? user.uid : null;
+      setAcctUI(user);
+      if (!user) return;
+
+      const ref = doc(fbDb, 'users', user.uid);
+      const snap = await getDoc(ref).catch(()=>null);
+      if (!snap || !snap.exists()){
+        await setDoc(ref, JSON.parse(JSON.stringify(state))).catch(()=>{});
+      }
+      unsubSnapshot = onSnapshot(ref, (docSnap)=>{
+        if (!docSnap.exists()) return;
+        const cloud = docSnap.data();
+        applyingRemote = true;
+        state = Object.assign(state, cloud, {
+          profile: Object.assign({}, state.profile, cloud.profile),
+          settings: Object.assign({}, state.settings, cloud.settings),
+          today: Object.assign({}, state.today, cloud.today)
+        });
+        try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch{}
+        renderAll();
+        applyingRemote = false;
+      });
+    });
+
+    $('acctSignIn').addEventListener('click', async ()=>{
+      $('acctMsg').textContent = '';
+      try{ await signInWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
+      catch(e){ $('acctMsg').textContent = authErrorMsg(e); }
+    });
+    $('acctSignUp').addEventListener('click', async ()=>{
+      $('acctMsg').textContent = '';
+      try{ await createUserWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
+      catch(e){ $('acctMsg').textContent = authErrorMsg(e); }
+    });
+    $('acctSignOut').addEventListener('click', ()=> signOut(fbAuth));
+  }
+
+  /* ---------------- boot ---------------- */
+  loadState();
+  refreshInputsFromState();
+
+  applyAccent();
+  applyWallpaper();
+  initSettings();
+  initAccount();
+  recalc();
+  tickHome();
+  renderDashboard();
+  setInterval(tickHome, 1000);
+  setInterval(renderDashboard, 60000);
+})();
+</script>
+</body>
+</html>
