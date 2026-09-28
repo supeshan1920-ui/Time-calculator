@@ -339,8 +339,8 @@
           <input type="time" id="start" value="08:30">
         </div>
         <div class="row">
-          <label>Mittagspause<span class="sub-label" id="pauseWindowLabel">11:30–13:00 · min. 30, max. 90 Min</span></label>
-          <input type="number" id="pauseMin" min="30" max="90" step="5" value="30" style="width:76px;">
+          <label>Pause (Min)</label>
+          <input type="number" id="pauseMin" min="0" max="240" step="5" value="30" style="width:76px;">
         </div>
         <div class="divider"></div>
         <div class="row">
@@ -463,7 +463,21 @@
     <div class="eyebrow">Blockzeiten</div>
     <div class="row"><label>Start</label><input type="time" id="setBlockStart" value="08:30"></div>
     <div class="row"><label>Ende</label><input type="time" id="setBlockEnd" value="16:30"></div>
-    <div class="hint">Bestimmt Soll-Arbeitszeit, Feierabend-Berechnung auf der Start- und Rechner-Seite.</div>
+    <div class="hint">Referenz auf der Start-Seite. Ende ist gleichzeitig die früheste Feierabend-Zeit im Rechner.</div>
+  </div>
+
+  <div class="field-block">
+    <div class="eyebrow">Sollarbeitszeit</div>
+    <div class="row">
+      <label>Pro Tag</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="number" id="setSollH" min="0" max="24" value="8" style="width:64px;" aria-label="Stunden">
+        <span class="hint" style="margin:0;">Std</span>
+        <input type="number" id="setSollM" min="0" max="59" value="12" style="width:64px;" aria-label="Minuten">
+        <span class="hint" style="margin:0;">Min</span>
+      </div>
+    </div>
+    <div class="hint">Standard 8 Std 12 Min. Unabhängig von den Blockzeiten — bestimmt Feierabend- und Saldo-Berechnung im Rechner.</div>
   </div>
 
   <div class="field-block">
@@ -543,6 +557,7 @@
     profile: { name: 'Supeshan' },
     settings: {
       blockStart:'08:30', blockEnd:'16:30',
+      sollH:'8', sollM:'12',
       notionUrl:'https://app.notion.com/p/To-Dos-3bfc883f7137806e9b10f1715eced11c',
       theme:'system',
       accent:'ember', accentCustom:'',
@@ -694,7 +709,7 @@
   /* ---------------- HOME ---------------- */
   function greetingWord(h){ return h<11 ? 'Guten Morgen' : h<17 ? 'Guten Tag' : 'Guten Abend'; }
   function homeSoll(){
-    return timeToMin(state.settings.blockEnd) - timeToMin(state.settings.blockStart) - 30;
+    return (Number(state.settings.sollH)||0)*60 + (Number(state.settings.sollM)||0);
   }
   function tickHome(){
     const now = new Date();
@@ -755,11 +770,9 @@
     if (school) return;
 
     $('calcBlockRange').textContent = state.settings.blockStart + '–' + state.settings.blockEnd;
-    $('pauseWindowLabel').textContent = '11:30–13:00 · min. 30, max. 90 Min';
 
     const start = $('start').value;
-    let pause = Math.min(90, Math.max(30, Number($('pauseMin').value) || 30));
-    $('pauseMin').value = pause;
+    const pause = Number($('pauseMin').value) || 0;
     const carry = Number($('carry').value) || 0;
     const soll = homeSoll();
 
@@ -949,6 +962,8 @@
     $('setName').addEventListener('input', e=>{ state.profile.name = e.target.value || 'du'; save(); tickHome(); });
     $('setBlockStart').addEventListener('input', e=>{ state.settings.blockStart = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
     $('setBlockEnd').addEventListener('input', e=>{ state.settings.blockEnd = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
+    $('setSollH').addEventListener('input', e=>{ state.settings.sollH = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
+    $('setSollM').addEventListener('input', e=>{ state.settings.sollM = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
     $('setNotion').addEventListener('input', e=>{ state.settings.notionUrl = e.target.value; save(); renderDashboard(); });
 
     document.querySelectorAll('#themeToggle button').forEach(btn=>{
@@ -992,6 +1007,8 @@
     $('setName').value = state.profile.name;
     $('setBlockStart').value = state.settings.blockStart;
     $('setBlockEnd').value = state.settings.blockEnd;
+    $('setSollH').value = state.settings.sollH;
+    $('setSollM').value = state.settings.sollM;
     $('setNotion').value = state.settings.notionUrl;
   }
   function renderAll(){
