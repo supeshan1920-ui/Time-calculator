@@ -32,7 +32,13 @@
     --fs-3xl:clamp(34px, 4.4vw + 18px, 88px);
     --fs-clock:clamp(32px, 3.8vw + 16px, 76px);
     --r-sm:8px; --r-md:12px; --r-lg:20px; --r-pill:999px;
+    --wp-ink: var(--ink); --wp-muted: var(--muted);
   }
+  /* Text sitting directly on an uploaded wallpaper photo (not inside an
+     opaque card) needs its own contrast-safe tokens — a dark photo would
+     otherwise swallow dark theme-ink text entirely. */
+  :root[data-wp-tone="light-text"]{ --wp-ink:#f7f5f0; --wp-muted:rgba(247,245,240,.78); }
+  :root[data-wp-tone="dark-text"]{ --wp-ink:#181510; --wp-muted:rgba(24,21,16,.7); }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       color-scheme: dark;
@@ -88,10 +94,7 @@
   [data-wallpaper="custom"] #wallpaper{ background-image:var(--wallpaper-img); }
 
   /* ---------- shell / nav ---------- */
-  .shell{ max-width:900px; margin:0 auto; padding:0 var(--sp-5) var(--sp-8); }
-  @media (min-width:1200px){ .shell{ max-width:1080px; } }
-  @media (min-width:1600px){ .shell{ max-width:1240px; } }
-  @media (min-width:2000px){ .shell{ max-width:1400px; } }
+  .shell{ width:min(94vw, 1720px); margin:0 auto; padding:0 var(--sp-5) var(--sp-8); }
   nav.topbar{
     display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4);
     padding:var(--sp-5) 0 var(--sp-4); position:sticky; top:0; z-index:20;
@@ -101,7 +104,7 @@
   }
   .wordmark{ display:flex; align-items:baseline; gap:var(--sp-2); }
   .wordmark .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); display:inline-block; margin-right:2px; }
-  .wordmark span{ font-family:var(--font-display); font-size:19px; font-weight:600; letter-spacing:.2px; }
+  .wordmark span{ font-family:var(--font-display); font-size:19px; font-weight:600; letter-spacing:.2px; color:var(--wp-ink); }
   .tabs{ display:flex; gap:var(--sp-1); background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); padding:4px; box-shadow:var(--shadow); }
   .tabs button{
     border:none; background:transparent; color:var(--muted); font-size:var(--fs-sm); font-weight:600;
@@ -137,11 +140,10 @@
   #view-home{ padding-top:var(--sp-2); }
   #view-calc{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); }
   #view-dash{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); padding-bottom:var(--sp-7); }
-  .narrow{ max-width:520px; margin:0 auto; }
-  @media (min-width:1200px){ .narrow{ max-width:600px; } }
-  @media (min-width:1600px){ .narrow{ max-width:660px; } }
+  .narrow{ width:min(100%, 720px); margin:0 auto; }
   .section-head{ margin-bottom:var(--sp-5); }
-  .section-head h2{ font-size:var(--fs-xl); font-weight:600; margin-top:var(--sp-1); }
+  .section-head .eyebrow{ color:var(--wp-muted); }
+  .section-head h2{ font-size:var(--fs-xl); font-weight:600; margin-top:var(--sp-1); color:var(--wp-ink); }
 
   /* ---------- cards ---------- */
   .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow); }
@@ -150,12 +152,12 @@
   .hint{ font-size:var(--fs-xs); color:var(--faint); line-height:1.5; margin-top:var(--sp-2); }
 
   /* ---------- HOME ---------- */
-  .hero{ padding:var(--sp-7) 0 var(--sp-6); display:grid; grid-template-columns:1.3fr 1fr; gap:var(--sp-6); align-items:end; }
-  .greeting{ font-family:var(--font-display); font-weight:600; font-size:var(--fs-3xl); line-height:1.02; letter-spacing:-.5px; }
+  .hero{ padding:var(--sp-7) 0 var(--sp-6); display:grid; grid-template-columns:1fr minmax(280px, 440px); gap:var(--sp-6); align-items:end; }
+  .greeting{ font-family:var(--font-display); font-weight:600; font-size:var(--fs-3xl); line-height:1.02; letter-spacing:-.5px; color:var(--wp-ink); }
   .greeting .name{ color:var(--accent); font-style:italic; }
-  .date-line{ margin-top:var(--sp-3); font-size:var(--fs-md); color:var(--muted); }
-  .clock{ margin-top:var(--sp-2); font-size:var(--fs-clock); font-weight:600; letter-spacing:-1px; }
-  .clock .sec{ font-size:.5em; color:var(--faint); }
+  .date-line{ margin-top:var(--sp-3); font-size:var(--fs-md); color:var(--wp-muted); }
+  .clock{ margin-top:var(--sp-2); font-size:var(--fs-clock); font-weight:600; letter-spacing:-1px; color:var(--wp-ink); }
+  .clock .sec{ font-size:.5em; color:var(--wp-muted); }
   .remain-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow); text-align:left; }
   .remain-card .k{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
   .remain-card .v{ font-size:var(--fs-2xl); font-weight:600; margin-top:var(--sp-2); color:var(--accent); }
@@ -304,7 +306,6 @@
 
   <!-- ============ HOME ============ -->
   <section class="view" id="view-home">
-    <div class="narrow">
     <div class="hero">
       <div>
         <h1 class="greeting"><span id="greetWord">Guten Tag</span>, <span class="name" id="greetName">Supeshan</span></h1>
@@ -321,7 +322,6 @@
       <div class="mini-tile"><div class="k">Start heute</div><div class="v" id="homeStart">—</div></div>
       <div class="mini-tile"><div class="k">Feierabend</div><div class="v" id="homeEnd">—</div></div>
       <div class="mini-tile"><div class="k">Blockzeiten</div><div class="v" id="homeBlock">—</div></div>
-    </div>
     </div>
   </section>
 
@@ -502,6 +502,13 @@
       <button class="btn ghost" id="wpClear">Entfernen</button>
     </div>
     <div class="hint">Bild wird nur lokal in diesem Browser gespeichert.</div>
+    <div class="row" style="margin-top:12px; margin-bottom:6px;"><label style="font-size:var(--fs-sm);">Text auf eigenem Bild</label></div>
+    <div class="theme-toggle" id="wpTextMode">
+      <button data-wp-text="auto">Automatisch</button>
+      <button data-wp-text="light-text">Hell</button>
+      <button data-wp-text="dark-text">Dunkel</button>
+    </div>
+    <div class="hint">Erkennt automatisch, ob dein Foto helle oder dunkle Schrift braucht — bei Bedarf hier überschreiben.</div>
   </div>
 
   <div class="field-block">
@@ -541,7 +548,8 @@
       notionUrl:'https://app.notion.com/p/To-Dos-3bfc883f7137806e9b10f1715eced11c',
       theme:'system',
       accent:'ember', accentCustom:'',
-      wallpaper:'ember', wallpaperCustom:''
+      wallpaper:'ember', wallpaperCustom:'',
+      wallpaperTextMode:'auto', wallpaperAutoTone:'dark-text'
     },
     today: { start:'', pauseMin:30, carry:0, leave:'16:30', date:'' },
     log: {},
@@ -617,12 +625,41 @@
     wrap.appendChild(custom);
   }
 
+  function effectiveWallpaperTone(){
+    const mode = state.settings.wallpaperTextMode || 'auto';
+    if (mode === 'light-text' || mode === 'dark-text') return mode;
+    return state.settings.wallpaperAutoTone || 'dark-text';
+  }
+  function analyzeImageTone(dataUrl){
+    return new Promise(resolve=>{
+      const img = new Image();
+      img.onload = ()=>{
+        try{
+          const size = 24;
+          const c = document.createElement('canvas');
+          c.width = size; c.height = size;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, size, size);
+          const data = ctx.getImageData(0, 0, size, size).data;
+          let sum = 0, n = 0;
+          for (let i=0; i<data.length; i+=4){ sum += 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]; n++; }
+          resolve((sum/n) < 115 ? 'light-text' : 'dark-text');
+        }catch{ resolve('dark-text'); }
+      };
+      img.onerror = ()=> resolve('dark-text');
+      img.src = dataUrl;
+    });
+  }
   function applyWallpaper(){
     document.body.parentElement.setAttribute('data-wallpaper', state.settings.wallpaper);
     if (state.settings.wallpaper === 'custom' && state.settings.wallpaperCustom){
       root.style.setProperty('--wallpaper-img', 'url(' + state.settings.wallpaperCustom + ')');
+      root.setAttribute('data-wp-tone', effectiveWallpaperTone());
+    } else {
+      root.removeAttribute('data-wp-tone');
     }
     document.querySelectorAll('.wp-opt').forEach(el=> el.classList.toggle('sel', el.dataset.wp === state.settings.wallpaper));
+    document.querySelectorAll('#wpTextMode button').forEach(b=> b.classList.toggle('sel', b.dataset.wpText === (state.settings.wallpaperTextMode || 'auto')));
   }
 
   /* ---------------- nav ---------------- */
@@ -934,10 +971,18 @@
       const file = e.target.files[0]; if (!file) return;
       if (file.size > 3*1024*1024){ alert('Bild ist zu gross (max. 3 MB).'); return; }
       const reader = new FileReader();
-      reader.onload = ()=>{ state.settings.wallpaper='custom'; state.settings.wallpaperCustom = reader.result; save(); applyWallpaper(); };
+      reader.onload = async ()=>{
+        state.settings.wallpaper = 'custom';
+        state.settings.wallpaperCustom = reader.result;
+        state.settings.wallpaperAutoTone = await analyzeImageTone(reader.result);
+        save(); applyWallpaper();
+      };
       reader.readAsDataURL(file);
     });
     $('wpClear').addEventListener('click', ()=>{ state.settings.wallpaper='ember'; state.settings.wallpaperCustom=''; save(); applyWallpaper(); });
+    document.querySelectorAll('#wpTextMode button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.settings.wallpaperTextMode = btn.dataset.wpText; save(); applyWallpaper(); });
+    });
 
     $('resetBtn').addEventListener('click', ()=>{
       if (!confirm('Wirklich alle Daten (Verlauf, Aufgaben, Einstellungen) zurücksetzen?')) return;
