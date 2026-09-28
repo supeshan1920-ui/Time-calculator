@@ -139,7 +139,11 @@
   html{ scroll-behavior:smooth; }
   @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
   .view{ display:block; scroll-margin-top:92px; padding-top:var(--sp-7); }
-  #view-home{ padding-top:var(--sp-2); }
+  #view-home{
+    padding-top:var(--sp-2);
+    min-height:calc(100svh - 96px);
+    display:flex; flex-direction:column; justify-content:center;
+  }
   #view-calc{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); }
   #view-dash{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); padding-bottom:var(--sp-7); }
   .narrow{ width:min(100%, 720px); margin:0 auto; }
