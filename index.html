@@ -64,11 +64,12 @@
 
   *,*::before,*::after{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
+  html{ overflow-x:hidden; }
   body{
     background:var(--bg); color:var(--ink);
     font-family:var(--font-body); font-size:var(--fs-base); line-height:1.5;
     -webkit-font-smoothing:antialiased;
-    min-height:100vh; position:relative; overflow-x:hidden;
+    min-height:100vh; position:relative;
   }
   img{ max-width:100%; }
   h1,h2,h3{ font-family:var(--font-display); text-wrap:balance; margin:0; }
@@ -833,7 +834,9 @@
     let lo = Math.min(...vals), hi = Math.max(...vals);
     if (lo === hi) { lo -= 30; hi += 30; }
     lo -= 10; hi += 10;
-    const x = i => padL + (i/(entries.length-1||1)) * (w-padL-padR);
+    const x = entries.length <= 1
+      ? () => padL + (w-padL-padR)/2
+      : i => padL + (i/(entries.length-1)) * (w-padL-padR);
     const y = v => padT + (1 - (v-lo)/(hi-lo)) * (h-padT-padB);
     const avg = vals.reduce((a,b)=>a+b,0) / vals.length;
 
@@ -845,8 +848,10 @@
       gridSvg += `<line class="grid-line" x1="${padL}" x2="${w-padR}" y1="${yy}" y2="${yy}"/>`;
       gridSvg += `<text x="${padL-6}" y="${yy+3}" text-anchor="end">${minToTime(val)}</text>`;
     }
-    const avgY = y(avg);
-    gridSvg += `<line class="avg-line" x1="${padL}" x2="${w-padR}" y1="${avgY}" y2="${avgY}"/>`;
+    if (entries.length > 1){
+      const avgY = y(avg);
+      gridSvg += `<line class="avg-line" x1="${padL}" x2="${w-padR}" y1="${avgY}" y2="${avgY}"/>`;
+    }
 
     const pts = vals.map((v,i)=>[x(i), y(v)]);
     const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
