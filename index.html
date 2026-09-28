@@ -485,11 +485,7 @@
   </div>
 </aside>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
+<script>
 (function(){
   const $ = id => document.getElementById(id);
   const root = document.documentElement;
@@ -497,6 +493,8 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstat
   /* ---------------- cloud sync (Firebase) ---------------- */
   // Fill these in from Firebase console → Project settings → your web app's config.
   // Leave blank to run local-only (no cross-device sync).
+  // Loaded lazily via dynamic import() below so a blocked/offline/failed load
+  // can never take the rest of the app down with it.
   const firebaseConfig = {
     apiKey: "AIzaSyBbPwHlkoY5ttRSgF0O1o9vfUi2mMoSnuc",
     authDomain: "time-calculator-a1790.firebaseapp.com",
@@ -506,12 +504,7 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstat
     appId: "1:194338984232:web:794418b9c2a6ac36dec01d"
   };
   const FIREBASE_ENABLED = !!firebaseConfig.apiKey;
-  let fbAuth = null, fbDb = null, unsubSnapshot = null, currentUid = null, applyingRemote = false;
-  if (FIREBASE_ENABLED){
-    const fbApp = initializeApp(firebaseConfig);
-    fbAuth = getAuth(fbApp);
-    fbDb = getFirestore(fbApp);
-  }
+  let fbAuth = null, fbDb = null, fbFs = null, authFns = null, unsubSnapshot = null, currentUid = null, applyingRemote = false;
 
   /* ---------------- state ---------------- */
   const STORE = 'feierabend_v1';
@@ -562,10 +555,10 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstat
   let cloudSaveTimer = null;
   function save(){
     try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch{}
-    if (!FIREBASE_ENABLED || !currentUid || applyingRemote) return;
+    if (!fbDb || !fbFs || !currentUid || applyingRemote) return;
     clearTimeout(cloudSaveTimer);
     cloudSaveTimer = setTimeout(()=>{
-      setDoc(doc(fbDb,'users',currentUid), JSON.parse(JSON.stringify(state))).catch(()=>{});
+      fbFs.setDoc(fbFs.doc(fbDb,'users',currentUid), JSON.parse(JSON.stringify(state))).catch(()=>{});
     }, 700);
   }
 
@@ -948,22 +941,45 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstat
     $('acctSignedIn').classList.toggle('hidden', !user);
     if (user) $('acctEmailLabel').textContent = user.email;
   }
-  function initAccount(){
+  async function initAccount(){
     setAcctUI(null);
     if (!FIREBASE_ENABLED) return;
 
-    onAuthStateChanged(fbAuth, async (user)=>{
+    let appMod, authMod, fsMod;
+    try{
+      [appMod, authMod, fsMod] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js")
+      ]);
+    }catch(e){
+      console.warn('Feierabend: Cloud-Sync konnte nicht geladen werden', e);
+      $('acctNotConfigured').style.display = 'block';
+      $('acctNotConfigured').textContent = 'Cloud-Sync gerade nicht erreichbar (offline oder blockiert) — App läuft lokal weiter.';
+      $('acctSignedOut').classList.add('hidden');
+      $('acctSignedIn').classList.add('hidden');
+      return;
+    }
+
+    const fbApp = appMod.initializeApp(firebaseConfig);
+    fbAuth = authMod.getAuth(fbApp);
+    fbDb = fsMod.getFirestore(fbApp);
+    fbFs = { doc: fsMod.doc, getDoc: fsMod.getDoc, setDoc: fsMod.setDoc, onSnapshot: fsMod.onSnapshot };
+    authFns = authMod;
+    setAcctUI(null);
+
+    authFns.onAuthStateChanged(fbAuth, async (user)=>{
       if (unsubSnapshot){ unsubSnapshot(); unsubSnapshot = null; }
       currentUid = user ? user.uid : null;
       setAcctUI(user);
       if (!user) return;
 
-      const ref = doc(fbDb, 'users', user.uid);
-      const snap = await getDoc(ref).catch(()=>null);
+      const ref = fbFs.doc(fbDb, 'users', user.uid);
+      const snap = await fbFs.getDoc(ref).catch(()=>null);
       if (!snap || !snap.exists()){
-        await setDoc(ref, JSON.parse(JSON.stringify(state))).catch(()=>{});
+        await fbFs.setDoc(ref, JSON.parse(JSON.stringify(state))).catch(()=>{});
       }
-      unsubSnapshot = onSnapshot(ref, (docSnap)=>{
+      unsubSnapshot = fbFs.onSnapshot(ref, (docSnap)=>{
         if (!docSnap.exists()) return;
         const cloud = docSnap.data();
         applyingRemote = true;
@@ -980,15 +996,15 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstat
 
     $('acctSignIn').addEventListener('click', async ()=>{
       $('acctMsg').textContent = '';
-      try{ await signInWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
+      try{ await authFns.signInWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
       catch(e){ $('acctMsg').textContent = authErrorMsg(e); }
     });
     $('acctSignUp').addEventListener('click', async ()=>{
       $('acctMsg').textContent = '';
-      try{ await createUserWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
+      try{ await authFns.createUserWithEmailAndPassword(fbAuth, $('acctEmail').value.trim(), $('acctPassword').value); }
       catch(e){ $('acctMsg').textContent = authErrorMsg(e); }
     });
-    $('acctSignOut').addEventListener('click', ()=> signOut(fbAuth));
+    $('acctSignOut').addEventListener('click', ()=> authFns.signOut(fbAuth));
   }
 
   /* ---------------- boot ---------------- */
