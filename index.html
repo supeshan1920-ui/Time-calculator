@@ -26,7 +26,11 @@
     --font-mono:'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Menlo, monospace;
 
     --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px; --sp-8:64px;
-    --fs-xs:11px; --fs-sm:12.5px; --fs-base:14.5px; --fs-md:17px; --fs-lg:22px; --fs-xl:34px; --fs-2xl:48px; --fs-3xl:60px;
+    --fs-xs:11px; --fs-sm:12.5px; --fs-base:14.5px; --fs-md:17px; --fs-lg:22px;
+    --fs-xl:clamp(28px, 1.6vw + 22px, 42px);
+    --fs-2xl:clamp(36px, 2.6vw + 24px, 60px);
+    --fs-3xl:clamp(34px, 4.4vw + 18px, 88px);
+    --fs-clock:clamp(32px, 3.8vw + 16px, 76px);
     --r-sm:8px; --r-md:12px; --r-lg:20px; --r-pill:999px;
   }
   @media (prefers-color-scheme: dark){
@@ -75,20 +79,25 @@
   }
   #wallpaper::after{
     content:''; position:absolute; inset:0;
-    background:linear-gradient(180deg, color-mix(in srgb, var(--bg) 55%, transparent) 0%, var(--bg) 78%);
+    background:linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg) 40%, transparent) 55%, var(--bg) 96%);
   }
-  [data-wallpaper="ember"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 60%), var(--backdrop); }
-  [data-wallpaper="midnight"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, var(--school) 40%, transparent), transparent 60%), var(--backdrop); }
-  [data-wallpaper="moss"] #wallpaper{ background:radial-gradient(ellipse 900px 600px at 82% -8%, color-mix(in srgb, #2f9e6e 40%, transparent), transparent 60%), var(--backdrop); }
+  [data-wallpaper="ember"] #wallpaper{ background:radial-gradient(ellipse 1200px 900px at 78% -10%, color-mix(in srgb, var(--accent) 70%, transparent), transparent 65%), var(--backdrop); }
+  [data-wallpaper="midnight"] #wallpaper{ background:radial-gradient(ellipse 1200px 900px at 78% -10%, color-mix(in srgb, var(--school) 70%, transparent), transparent 65%), var(--backdrop); }
+  [data-wallpaper="moss"] #wallpaper{ background:radial-gradient(ellipse 1200px 900px at 78% -10%, color-mix(in srgb, #2f9e6e 70%, transparent), transparent 65%), var(--backdrop); }
   [data-wallpaper="plain"] #wallpaper{ background:var(--backdrop); }
   [data-wallpaper="custom"] #wallpaper{ background-image:var(--wallpaper-img); }
 
   /* ---------- shell / nav ---------- */
   .shell{ max-width:900px; margin:0 auto; padding:0 var(--sp-5) var(--sp-8); }
+  @media (min-width:1200px){ .shell{ max-width:1080px; } }
+  @media (min-width:1600px){ .shell{ max-width:1240px; } }
+  @media (min-width:2000px){ .shell{ max-width:1400px; } }
   nav.topbar{
     display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4);
     padding:var(--sp-5) 0 var(--sp-4); position:sticky; top:0; z-index:20;
-    background:linear-gradient(180deg, var(--bg) 72%, transparent);
+    background:color-mix(in srgb, var(--bg) 45%, transparent);
+    backdrop-filter:blur(16px) saturate(1.3);
+    -webkit-backdrop-filter:blur(16px) saturate(1.3);
   }
   .wordmark{ display:flex; align-items:baseline; gap:var(--sp-2); }
   .wordmark .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); display:inline-block; margin-right:2px; }
@@ -103,6 +112,14 @@
   :root[data-theme="light"] .tabs button.active, :root:not([data-theme="dark"]) .tabs button.active{ color:#fff; }
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tabs button.active{ color:#1c1006; } }
   :root[data-theme="dark"] .tabs button.active{ color:#1c1006; }
+
+  .theme-toggle{ display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-pill); padding:4px; }
+  .theme-toggle button{ flex:1; border:none; background:transparent; color:var(--muted); font-size:var(--fs-sm); font-weight:600; padding:8px 10px; border-radius:var(--r-pill); cursor:pointer; transition:.15s; }
+  .theme-toggle button:hover{ color:var(--ink); }
+  .theme-toggle button.sel{ background:var(--accent); color:#1c1006; }
+  :root[data-theme="light"] .theme-toggle button.sel, :root:not([data-theme="dark"]) .theme-toggle button.sel{ color:#fff; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .theme-toggle button.sel{ color:#1c1006; } }
+  :root[data-theme="dark"] .theme-toggle button.sel{ color:#1c1006; }
   .icon-btn{
     width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--surface);
     color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
@@ -121,6 +138,8 @@
   #view-calc{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); }
   #view-dash{ border-top:1px solid var(--line-soft); margin-top:var(--sp-7); padding-bottom:var(--sp-7); }
   .narrow{ max-width:520px; margin:0 auto; }
+  @media (min-width:1200px){ .narrow{ max-width:600px; } }
+  @media (min-width:1600px){ .narrow{ max-width:660px; } }
   .section-head{ margin-bottom:var(--sp-5); }
   .section-head h2{ font-size:var(--fs-xl); font-weight:600; margin-top:var(--sp-1); }
 
@@ -135,11 +154,11 @@
   .greeting{ font-family:var(--font-display); font-weight:600; font-size:var(--fs-3xl); line-height:1.02; letter-spacing:-.5px; }
   .greeting .name{ color:var(--accent); font-style:italic; }
   .date-line{ margin-top:var(--sp-3); font-size:var(--fs-md); color:var(--muted); }
-  .clock{ margin-top:var(--sp-2); font-size:52px; font-weight:600; letter-spacing:-1px; }
-  .clock .sec{ font-size:26px; color:var(--faint); }
+  .clock{ margin-top:var(--sp-2); font-size:var(--fs-clock); font-weight:600; letter-spacing:-1px; }
+  .clock .sec{ font-size:.5em; color:var(--faint); }
   .remain-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow); text-align:left; }
   .remain-card .k{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
-  .remain-card .v{ font-size:44px; font-weight:600; margin-top:var(--sp-2); color:var(--accent); }
+  .remain-card .v{ font-size:var(--fs-2xl); font-weight:600; margin-top:var(--sp-2); color:var(--accent); }
   .remain-card .v.done{ color:var(--good); }
   .remain-card .sub{ font-size:var(--fs-sm); color:var(--muted); margin-top:var(--sp-2); }
   .chip{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs); font-weight:600; letter-spacing:.4px; padding:5px 11px; border-radius:var(--r-pill); }
@@ -152,18 +171,13 @@
   @media (max-width:720px){
     .hero{ grid-template-columns:1fr; }
     .home-grid{ grid-template-columns:1fr 1fr; }
-    .clock{ font-size:40px; }
-    .greeting{ font-size:38px; }
   }
   @media (max-width:520px){
     :root{ --sp-5:16px; }
     .wordmark span{ display:none; }
     .tabs button{ padding:7px 11px; font-size:11.5px; }
-    .greeting{ font-size:32px; }
-    .clock{ font-size:32px; }
     .home-grid{ grid-template-columns:1fr; }
     .hero-stats, .grid2{ grid-template-columns:1fr; }
-    .stat-hero .v{ font-size:30px; }
   }
 
   /* ---------- RECHNER ---------- */
@@ -180,7 +194,7 @@
   .hero-stats{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); }
   .stat-hero{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--sp-5) var(--sp-4); text-align:center; }
   .stat-hero .k{ font-size:var(--fs-xs); letter-spacing:1.6px; text-transform:uppercase; color:var(--muted); font-weight:600; }
-  .stat-hero .v{ font-size:38px; font-weight:600; margin-top:var(--sp-2); }
+  .stat-hero .v{ font-size:var(--fs-2xl); font-weight:600; margin-top:var(--sp-2); }
   .plus{ color:var(--good); } .minus{ color:var(--critical); }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); }
   .mini{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--sp-4); text-align:center; }
@@ -219,8 +233,6 @@
   .chart .area{ fill:url(#areaGrad); opacity:.5; }
   .chart .dot{ fill:var(--accent); }
   .chart .dot.end{ fill:var(--accent); stroke:var(--surface); stroke-width:2; }
-  .sample-note{ display:flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--faint); margin-top:var(--sp-2); }
-  .sample-note .sw{ width:7px; height:7px; border-radius:50%; background:var(--faint); }
 
   .progress-track{ height:14px; border-radius:var(--r-pill); background:var(--surface-3); overflow:hidden; margin-top:var(--sp-4); }
   .progress-fill{ height:100%; background:var(--accent); border-radius:var(--r-pill); transition:width .4s ease; }
@@ -340,7 +352,11 @@
       </div>
 
       <div class="hero-stats" style="margin-top:var(--sp-4);">
-        <div class="stat-hero"><div class="k">Feierabend</div><div class="v" id="endWithSaldo">—</div></div>
+        <div class="stat-hero">
+          <div class="k">Feierabend</div>
+          <div class="v" id="endWithSaldo">—</div>
+          <div class="hint" id="endBankedNote" style="display:none; margin-top:6px;"></div>
+        </div>
         <div class="stat-hero"><div class="k">Ohne Saldo</div><div class="v" id="endNoSaldo">—</div></div>
       </div>
 
@@ -394,7 +410,6 @@
         <div class="stat-row"><span class="v" id="progressLabel">—</span><span class="avg-label" id="progressPct"></span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
         <div class="progress-legend"><span id="progressWorked">0 h gearbeitet</span><span id="avgWorkedChip"></span><span id="progressLeft">Soll —</span></div>
-        <div class="sample-note" id="sampleNote" style="display:none;"><span class="sw"></span>Beispieldaten aus deinen letzten Einträgen — trage einen Tag im Rechner ein, um echte Muster zu sehen.</div>
       </div>
 
       <div class="card full">
@@ -460,6 +475,15 @@
   </div>
 
   <div class="field-block">
+    <div class="eyebrow">Darstellung</div>
+    <div class="theme-toggle" id="themeToggle">
+      <button data-theme-opt="system">System</button>
+      <button data-theme-opt="light">Hell</button>
+      <button data-theme-opt="dark">Dunkel</button>
+    </div>
+  </div>
+
+  <div class="field-block">
     <div class="eyebrow">Akzentfarbe</div>
     <div class="swatches" id="accentSwatches"></div>
   </div>
@@ -510,34 +534,17 @@
   const STORE = 'feierabend_v1';
   const todayStr = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 
-  function seedSample(){
-    const log = {};
-    const names = [];
-    let d = new Date();
-    let count = 0, offset = 1;
-    while (count < 8){
-      const t = new Date(d); t.setDate(d.getDate() - offset); offset++;
-      const dow = t.getDay();
-      if (dow === 0 || dow === 6 || dow === 4 || dow === 5) continue;
-      const jitterS = Math.round((Math.random()*16)-8);
-      const jitterL = Math.round((Math.random()*20)-10);
-      const sStart = 510+jitterS, sLeave = 990+jitterL;
-      log[todayStr(t)] = { start: minToTime(sStart), leave: minToTime(sLeave), pauseMin: 30, worked: Math.max(0, sLeave-sStart-30), sample:true };
-      count++;
-    }
-    return log;
-  }
-
   let state = {
     profile: { name: 'Supeshan' },
     settings: {
       blockStart:'08:30', blockEnd:'16:30',
       notionUrl:'https://app.notion.com/p/To-Dos-3bfc883f7137806e9b10f1715eced11c',
+      theme:'system',
       accent:'ember', accentCustom:'',
       wallpaper:'ember', wallpaperCustom:''
     },
     today: { start:'', pauseMin:30, carry:0, leave:'16:30', date:'' },
-    log: null,
+    log: {},
     todos: []
   };
 
@@ -550,7 +557,12 @@
         today: Object.assign({}, state.today, raw.today)
       });
     }catch{}
-    if (!state.log) state.log = seedSample();
+    if (!state.log) state.log = {};
+    // one-time cleanup: earlier versions seeded placeholder example days —
+    // strip any leftover ones out of previously-stored data.
+    let hadSample = false;
+    Object.keys(state.log).forEach(k=>{ if (state.log[k]?.sample){ delete state.log[k]; hadSample = true; } });
+    if (hadSample) save();
   }
   let cloudSaveTimer = null;
   function save(){
@@ -575,7 +587,14 @@
 
   function isSchoolDay(date){ const dow = date.getDay(); return dow === 4 || dow === 5; } // Do / Fr
 
-  /* ---------------- accent / wallpaper ---------------- */
+  /* ---------------- theme mode / accent / wallpaper ---------------- */
+  function applyThemeMode(){
+    const mode = state.settings.theme || 'system';
+    if (mode === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', mode);
+    document.querySelectorAll('#themeToggle button').forEach(b=> b.classList.toggle('sel', b.dataset.themeOpt===mode));
+  }
+
   const ACCENTS = { ember:'#ff8a3d', teal:'#34c0a8', violet:'#9b7bff', rose:'#ff6b9d', sky:'#4da8ff' };
 
   function applyAccent(){
@@ -709,10 +728,21 @@
     const carry = Number($('carry').value) || 0;
     const soll = homeSoll();
 
+    const blockEndMin = timeToMin(state.settings.blockEnd);
     const feierabendNeutral = timeToMin(start) + soll + pause;
-    const feierabendSaldo = feierabendNeutral - carry;
+    let feierabendSaldo = feierabendNeutral - carry;
+    let bankedExtra = 0;
+    if (feierabendSaldo < blockEndMin){
+      // Blockzeiten win: you stay until the block ends no matter how much
+      // saldo you've banked — the minutes you'd otherwise have saved go
+      // straight into the balance instead of letting you leave early.
+      bankedExtra = blockEndMin - feierabendSaldo;
+      feierabendSaldo = blockEndMin;
+    }
     $('endWithSaldo').textContent = minToTime(feierabendSaldo);
     $('endNoSaldo').textContent = minToTime(feierabendNeutral);
+    $('endBankedNote').style.display = bankedExtra > 0 ? 'block' : 'none';
+    if (bankedExtra > 0) $('endBankedNote').textContent = '+' + bankedExtra + ' Min gehen in den Saldo (Blockzeiten bis ' + state.settings.blockEnd + ')';
 
     const leave = $('leave').value;
     if (leave){
@@ -738,7 +768,7 @@
     const leave = $('leave').value || minToTime(now.getHours()*60+now.getMinutes());
     const pauseMin = Number($('pauseMin').value) || 30;
     const worked = Math.max(0, timeToMin(leave) - timeToMin(start) - pauseMin);
-    state.log[key] = { start, leave, pauseMin, worked, sample:false };
+    state.log[key] = { start, leave, pauseMin, worked };
     save();
     $('logConfirm').textContent = 'Zum Dashboard hinzugefügt — ' + fmtDur(worked) + ' am ' + key + '.';
     setTimeout(()=> $('logConfirm').textContent = '', 4000);
@@ -807,7 +837,13 @@
     const live = !isSchoolDay(now) && state.today.date === todayStr(now) && state.today.start;
     if (live){
       const nowMin = now.getHours()*60+now.getMinutes();
-      workedSoFar = Math.max(0, nowMin - timeToMin(state.today.start) - (state.today.pauseMin||30));
+      const startMin = timeToMin(state.today.start);
+      const pauseMin = state.today.pauseMin || 30;
+      // Only deduct the portion of the 11:30–13:00 lunch window that has actually
+      // elapsed by now, so worked time climbs from the start instead of sitting
+      // at 0% until a full pause's worth of minutes has passed.
+      const pauseSoFar = Math.max(0, Math.min(nowMin, PAUSE_START + pauseMin) - PAUSE_START);
+      workedSoFar = Math.max(0, (nowMin - startMin) - pauseSoFar);
     }
     const pct = soll>0 ? Math.min(100, Math.round((workedSoFar/soll)*100)) : 0;
     $('progressFill').style.width = pct + '%';
@@ -820,8 +856,6 @@
 
   function renderDashboard(){
     const entries = workdayEntries();
-    const usingSample = entries.some(e=>e.sample);
-    $('sampleNote').style.display = usingSample ? 'flex' : 'none';
 
     if (entries.length){
       const avgStartMin = entries.reduce((a,e)=>a+timeToMin(e.start),0)/entries.length;
@@ -887,6 +921,10 @@
     $('setBlockEnd').addEventListener('input', e=>{ state.settings.blockEnd = e.target.value; save(); tickHome(); recalc(); renderDashboard(); });
     $('setNotion').addEventListener('input', e=>{ state.settings.notionUrl = e.target.value; save(); renderDashboard(); });
 
+    document.querySelectorAll('#themeToggle button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ state.settings.theme = btn.dataset.themeOpt; save(); applyThemeMode(); });
+    });
+
     renderAccentSwatches();
 
     document.querySelectorAll('.wp-opt').forEach(btn=>{
@@ -920,6 +958,7 @@
   }
   function renderAll(){
     refreshInputsFromState();
+    applyThemeMode();
     applyAccent();
     applyWallpaper();
     renderAccentSwatches();
@@ -1018,6 +1057,7 @@
   loadState();
   refreshInputsFromState();
 
+  applyThemeMode();
   applyAccent();
   applyWallpaper();
   initSettings();
