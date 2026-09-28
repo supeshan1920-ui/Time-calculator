@@ -617,12 +617,19 @@
   let spyTicking = false;
   function updateSpy(){
     spyTicking = false;
-    const y = window.scrollY + 140;
-    let current = sectionOrder[0][1];
-    sectionOrder.forEach(([id, key])=>{ if ($(id).offsetTop <= y) current = key; });
+    const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    let current;
+    if (nearBottom){
+      current = sectionOrder[sectionOrder.length-1][1];
+    } else {
+      const y = window.scrollY + 140;
+      current = sectionOrder[0][1];
+      sectionOrder.forEach(([id, key])=>{ if ($(id).offsetTop <= y) current = key; });
+    }
     document.querySelectorAll('.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.view===current));
   }
   window.addEventListener('scroll', ()=>{ if (!spyTicking){ spyTicking = true; requestAnimationFrame(updateSpy); } }, { passive:true });
+  window.addEventListener('resize', updateSpy, { passive:true });
   updateSpy();
 
   $('settingsBtn').addEventListener('click', ()=>{ $('drawer').classList.add('open'); $('scrim').classList.add('open'); });
